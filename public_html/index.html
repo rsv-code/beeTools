@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Jsenv.js Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <script src="js/head.min.js"></script>
+    <script>
+
+      // Define includes list.
+      var includes = [
+        'js/jquery.min.js',
+        'js/handlebars-v4.0.5.js',
+        'js/jsenv.js',
+        'js/bootstrap.min.js',
+        'test_data/include2.js',
+        'test_data/include1.js',
+        'js/Binder.js',
+        'js/TemplateMgr.js',
+        'js/jquery.waitforimages.min.js',
+        'test_data/HomePage.js',
+        'test_data/SecondPage.js',
+
+      ];
+
+      // Have head load and eval the includes in order.
+      head.js(includes, function () {
+
+        // Once document is ready.
+        $(document).ready(function () {
+
+          // Instantiate a new base object.
+          $('#output').append("Creating new myObj:\n");
+          var mo = new myObj();
+          $('#output').append(mo.jstr() + "\n");
+
+          // Instantiate a new object that inherits from the base object.
+          $('#output').append("Creating new myObjOutter:\n");
+          var moo = new myObjOutter();
+          $('#output').append(moo.jstr() + "\n");
+
+          // Define $templates so we can use them in our pages.
+          $templates = new TemplateMgr();
+
+          // Create new binder called app, and init.
+          app = new Binder("#main");
+          app
+            .init(new HomePage())         // Init with new HomePage object.
+            .addPage(new SecondPage())    // Add a new SecondPage object.
+          ;
+          app.gotoPage('homePage');       // Tell the binder to show the
+                                          // home page.
+        });
+      });
+
+    </script>
+  </head>
+  <body>
+    <div class="container ctr">
+      <h1>Jsenv.js Include Test</h1>
+      <pre id='output'></pre>
+      <br />
+      <h1>Binder/Page Example</h1>
+      <div id="main"></div>
+    </div>
+  </body>
+</html>
