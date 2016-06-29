@@ -22,7 +22,7 @@ HomePage.prototype.show = function (Bdr) {
 
   // Set button event handler.
   $('#HomeNextPageButton').on('click', function (e) {
-    Bdr.gotoPage('secondPage');
+    Bdr.gotoPage('secondPage', { callingPage: "homePage" });
   });
 };
 

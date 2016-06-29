@@ -81,8 +81,16 @@ function Binder (Selector) {
   // Page data used for history pushState ...
   this.pageData = {};
 
-  // History list.
+  // History list. This is a list of objects with the following
+  // properties.
+  // id - The page id.
+  // data - The data the page was called with.
   this.history = [];
+
+  // Clear page setting. If set to true then when gotoPage is called the
+  // current page html is replaced with a blank string until the new page
+  // inserts the new content.
+  this.clearPage = true;
 }
 Binder.prototype = new BaseObj;
 
@@ -124,13 +132,19 @@ Binder.prototype.setNavigationHandlers = function () {
  * @return this
  */
 Binder.prototype.backOnePage = function () {
-  if (this.history[this.history.length - 1] === this.homePage.id) {
+  if (this.history[this.history.length - 1].id === this.homePage.id) {
     window.history.go(-2);
     return 1;
   } else {
       this.history.pop();                 // Remove current
-      var backPage = this.history.pop();  // Remove previous because it will be added back.
-      this.gotoPage(backPage, true);
+      var backPageObj = this.history.pop();  // Remove previous because it will be added back.
+      // Set the BackButton flag.
+      if (isDef(backPageObj.data)) {
+        backPageObj.data.BackButton = true;
+      } else {
+        backPageObj.data = { BackButton: true };
+      }
+      this.gotoPage(backPageObj.id, backPageObj.data);
   }
   return this;
 };
@@ -155,16 +169,21 @@ Binder.prototype.addPage = function (PageObj) {
  * calling updateScrollPosition() to return the user to the spot they were at
  * in the previous page.
  * @param PageId is a string with the page to navigate to.
- * @param BackButton is a boolean with true if the back
+ * @param Data is a JS object with parameters to pass through to the show()
+ * function. It may also contain the BackButton boolean indicating it was called
+ * when a user clicked the browser back button.
  * button caused the navigation and false if not.
  * @return this
  */
-Binder.prototype.gotoPage = function(PageId, BackButton) {
+Binder.prototype.gotoPage = function(PageId, Data) {
   if (!isDef(PageId) || PageId.trim() === "") { throw ("Binder.gotoPage(): Parameter PageId is missing or blank."); }
   if (!this.pages.contains(PageId)) { throw ("Binder.gotoPage(): Provided PageId '" + PageId + "' not found in binder."); }
 
-  //$(this.selector).html(window[PageId].html);
   if (isDef(this.pages[PageId].show) && typeof this.pages[PageId].show === "function") {
+    // If clearPage is set to true, first clear the current content.
+    if (this.clearPage === true) {
+      this.replace("");
+    }
 
     // Set browser location to default.
     history.replaceState(this.pageData, this.homePage.title, "/");
@@ -173,7 +192,7 @@ Binder.prototype.gotoPage = function(PageId, BackButton) {
     if (PageId === this.homePage.id) {
       this.history = [];
     }
-    this.history.push(PageId);
+    this.history.push( { id: PageId, data: Data } );
 
     // Remove current scroll handler.
     $(document).off('scroll');
@@ -181,13 +200,16 @@ Binder.prototype.gotoPage = function(PageId, BackButton) {
     // Set current page.
     this.currentPage = this.pages[PageId];
 
-    // If this wasn't triggered by back button, reset scrollPos of page.
-    if (!isDef(BackButton) || BackButton !== true) {
+    // If this was triggered by back button, then remove the back button flag.
+    // Else reset scrollPos of page.
+    if (isDef(Data) && isDef(Data.BackButton) && Data.BackButton === true) {
+      Data.BackButton = false;
+    } else {
       this.currentPage.scrollPos = 0;
     }
 
     // Show the page.
-    this.currentPage.show(this);
+    this.currentPage.show(this, Data);
   } else {
     throw ("Binder.gotoPage(): Page '" + PageId + "' show() method not found.");
   }

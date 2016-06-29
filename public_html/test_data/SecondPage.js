@@ -6,7 +6,9 @@ function SecondPage () {
 }
 SecondPage.prototype = new Page;
 
-SecondPage.prototype.show = function (Bdr) {
+SecondPage.prototype.show = function (Bdr, Data) {
+  if (isDef(Data)) { console.log("callingPage: " + Data.callingPage); }
+
   // Data to provide to template.
   var data = {
     title: "The Second Page!",
