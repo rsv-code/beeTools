@@ -80,6 +80,10 @@ TemplateMgr.prototype.load = function (Path, OnSuccess, OnError) {
       },
       dataType: "text"
     });
+  } else {
+    if (OnSuccess) {
+      OnSuccess();
+    }
   }
 };
 
