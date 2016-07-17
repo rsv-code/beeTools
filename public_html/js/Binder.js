@@ -216,6 +216,12 @@ Binder.prototype.gotoPage = function(PageId, Data) {
   return this;
 };
 
+Binder.prototype.setQueryString = function (UrlQueryString) {
+  if (isDef(UrlQueryString)) {
+    history.replaceState(this.pageData, this.homePage.title, UrlQueryString);
+  }
+};
+
 /**
  * Called by the page once it's show method has completed any
  * writing to the page to update the scroll tracking and
